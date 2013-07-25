@@ -21,14 +21,21 @@
 
 	// Standard SQL Query function
 	function mySQLQuery($input) {
-		$result2 = mysql_query($input);
+		$result = mysql_query($input);
 		
-		if (!$result2) {
+		if (!$result) {
 			echo "Could not execute query: $input";
 			echo "<br>";
 			trigger_error(mysql_error(), E_USER_ERROR);
 		} else {
-			return $result2;
+			return $result;
+		}
+	}
+	
+	// Function for printing one dimensional arrays to test stuff
+	function printArray($input) {
+		for ($i = 0; $i < sizeof($input); $i++) {
+			echo $input[$i] . "<br>";
 		}
 	}
 	
@@ -71,93 +78,49 @@
 		return $friends;
 	}
 	
-	function getColOfTbl($col_name, $tbl_name, $where_col, $where_res) {
-		$query = "SELECT $col_name FROM $tbl_name WHERE $where_col = '$where_res'";
+	// Gets username from given userid
+	function getUsername($input_userid) {
+		$query = "SELECT username FROM users WHERE id='$input_userid'";
 		$result = mySQLQuery($query);
-		
-		$row = array();
-		$temp = array();
-		
-		$i = 0;
-		while($row = mysql_fetch_array($result)) {
-			$temp[$i] = $row[0];
-			$i++;
-		}
-		return $temp;
+		$username = mysql_fetch_row($result);
+		return $username[0];
 	}
 	
-	function getColOfTblOrder($col_name, $tbl_name, $where_col, $where_res) {
-		$query = "SELECT $col_name FROM $tbl_name WHERE $where_col = '$where_res' ORDER BY created DESC";
+	function get_dg_refs() {
+		global $userid, $friends_id;
+		$query = "SELECT ref FROM datagrams WHERE userid = '" . $userid[0][0] . "'";
+		for ($i = 0; $i < sizeof($friends_id); $i++) {
+			$query .= " OR userid = '" . $friends_id[$i] . "'";
+		}
+		$query .= " ORDER BY created DESC";
 		$result = mySQLQuery($query);
-		
-		$row = array();
 		$temp = array();
-		
-		$i = 0;
-		while($row = mysql_fetch_array($result)) {
-			$temp[$i] = $row[0];
-			$i++;
+		while($row = mysql_fetch_row($result)) {
+			$temp[] = $row;
 		}
-		return $temp;
-	}
-
-	function get_dg_titles() {
-		$temp = array();
-		$dg_titles = array();
-		global $friends_id;
-		for($i = 0; $i < sizeof($friends_id); $i++) {
-			$temp[$i] = getColOfTblOrder("title", "datagrams", "userid", "$friends_id[$i]");
-		}
-		$a = 0;
+		$dg_refs = array();
 		for ($i = 0; $i < sizeof($temp); $i++) {
-			for($j = 0; $j < sizeof($temp[$i]); $j++) {
-				$dg_titles[$a] = $temp[$i][$j];
-				$a++;
-			}
+			$dg_refs[$i] = $temp[$i][0];
 		}
-		return $dg_titles;
-	}
-
-	function get_dg_owner() {
-		$temp = get_dg_column("userid");
-		$temp2 = array();
-		$dg_friends = array();
-		for ($i = 0; $i < sizeof($temp); $i++) {
-			$temp2[$i] = getColOfTbl("username", "users", "id", "$temp[$i]");
-		}
-		$a = 0;
-		for ($i = 0; $i < sizeof($temp2); $i++) {
-			for($j = 0; $j < sizeof($temp2[$i]); $j++) {
-				$dg_friends[$a] = $temp2[$i][$j];
-				$a++;
-			}
-		}
-		return $dg_friends;
+		return $dg_refs;
 	}
 	
-	function get_dg_column($column) {
-		global $dg_titles;
-		$temp = array();
+	function get_dg_column($inputColumn) {
+		global $dg_refs;
 		$dg_column = array();
-		for ($i = 0; $i < sizeof($dg_titles); $i++) {
-			$title = mysql_real_escape_string($dg_titles[$i]);
-			$temp[$i] = getColOfTblOrder("$column", "datagrams", "title", "$title");
-		}
-		echo "<br>";
-		$a = 0;
-		for($i = 0; $i < sizeof($temp); $i++) {
-			for($j = 0; $j < sizeof($temp[$i]); $j++) {
-				$dg_column[$a] = $temp[$i][$j];
-				$a++;
-			}
+		for ($i = 0; $i < sizeof($dg_refs); $i++) {
+			$query = "SELECT $inputColumn FROM datagrams WHERE ref = '$dg_refs[$i]' ORDER BY created DESC";
+			$result = mySQLQuery($query);
+			$row = mysql_fetch_row($result);
+			$dg_column[$i] = $row[0];
 		}
 		return $dg_column;
 	}
-	
-	function print_dg($username, $title, $description, $content, $type) {
+
+	function print_dg($username, $title, $description, $content, $type, $date) {
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\">"; // Profile pic container
-				echo "<div id=\"dgprofile_text\">"; // Profile text container
+				echo "<div id=\"dg_profile_text\">"; // Profile text container
 					echo "$username";
 				echo "</div>"; // End profile text container
 			echo "</div>"; // End profile pic container
@@ -175,7 +138,7 @@
 	function print_dg_link($username, $title, $description, $content, $type, $date) {
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\">"; // Profile pic container
-				echo "<div id=\"dgprofile_text\">"; // Profile text container
+				echo "<div id=\"dg_profile_text\">"; // Profile text container
 					echo "$username";
 				echo "</div>"; // End profile text container
 			echo "</div>"; // End profile pic container
@@ -183,8 +146,8 @@
 				echo "<h1>" . $title . "</h1>"; // Title
 				echo "<h2>" . $description . "</h2>"; // Description
 				echo "<h3><a href=" . $content . ">" . $content . "</a></h3>"; // Description
-				echo "Type of Datagram: " . $type . "<br>"; // Tell the type of datagram
-				echo "Created: " . $date;
+				echo "<h4>Type of Datagram: <b>" . $type . "</b><br>"; // Tell the type of datagram
+				echo "Created: <i>" . $date . "</i></h4><br>";
 			echo "</div>"; // End info container
 		echo "</div>"; // End datagram container
 		echo "<br>"; // Line breaks for next datagram
@@ -193,16 +156,16 @@
 	function print_dg_pic($username, $title, $description, $content, $type, $date) {
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\">"; // Profile pic container
-				echo "<div id=\"dgprofile_text\">"; // Profile text container
+				echo "<div id=\"dg_profile_text\">"; // Profile text container
 					echo "$username";
 				echo "</div>"; // End profile text container
 			echo "</div>"; // End profile pic container
 			echo "<div id=\"dg_info\">";
 				echo "<h1>" . $title . "</h1>"; // Title
 				echo "<h2>" . $description . "</h2>"; // Description
-				echo "<h3><div id=\"dg_info_pic\"><img src=\"" . $content . "\" style=\"width:100%\"></img></div></h3>"; // Content
-				echo "Type of Datagram: " . $type . "<br>"; // Tell the type of datagram
-				echo "Created: " . $date;
+				echo "<h3><a href=\"$content\"><div id=\"dg_info_pic\" style=\"background-image:url($content);\"></div></a></h3>"; // Content
+				echo "<h4>Type of Datagram: <b>" . $type . "</b><br>"; // Tell the type of datagram
+				echo "Created: <i>" . $date . "</i></h4>";
 			echo "</div>"; // End info container
 		echo "</div>"; // End datagram container
 		echo "<br>"; // Line breaks for next datagram
@@ -239,9 +202,9 @@
 <div id="blanket" style="display:none;"></div>
 
 <!-- Popup link start-->
-<div id="popup_container" style="display:none;">
+<div id="popup_container_link" style="display:none;">
 	<div id="popup">
-		<div id="popup_icon">
+		<div id="popup_icon" style="background-image:url(images/create_link_icon.png)">
 			<div id="popup_icon_text">
 				Create a link!
 			</div>
@@ -250,7 +213,7 @@
 		<!-- Start popup input -->
 		
 		<!-- Button to close at top right -->
-		<div id="popup_close"><a href="#" onclick="popup('popup_container')">X</a></div>
+		<div id="popup_close"><a href="#" onclick="popup('popup_container_link')">X</a></div>
 		
 		<!-- Background of textbars/box -->
 		<div id="popup_bar_bg"></div>
@@ -276,7 +239,7 @@
 					<h1>Description</h1>
 					<h2>Give your link a description.</h2>
 				</div>
-				<textarea action="postlink.php" class="popup_textarea" name="inputdescription">Write a description here.</textarea>
+				<textarea class="popup_textarea" name="inputdescription">Write a description here.</textarea>
 			</div>
 			<input type="submit" value="Share" class="popup_submit"/><br>
 		</form>
@@ -286,6 +249,55 @@
 	</div>
 </div>
 <!-- Popup link end-->
+
+<!-- Popup photo start-->
+<div id="popup_container_photo" style="display:none;">
+	<div id="popup">
+		<div id="popup_icon" style="background-image:url(images/create_photo_icon.png)">
+			<div id="popup_icon_text">
+				Post a photo!
+			</div>
+		</div>
+		<h1>Datagram Photo</h1><br><br><br>
+		<!-- Start popup input -->
+		
+		<!-- Button to close at top right -->
+		<div id="popup_close"><a href="#" onclick="popup('popup_container_photo')">X</a></div>
+		
+		<!-- Background of textbars/box -->
+		<div id="popup_bar_bg"></div>
+		
+		<!-- Start form for input of link datagram -->
+		<form action="postphoto.php" method="post">
+			<div id="popup_bar">
+				<div id="popup_text_container">
+					<h1>Title</h1>
+					<h2>Give your photo a title.</h2>
+				</div>
+				<input type="text" class="popup_textbox" name="inputtitle"></input>
+			</div>
+			<div id="popup_bar">
+				<div id="popup_text_container">
+					<h1>URL</h1>
+					<h2>Copy and paste a URL for an image.</h2>
+				</div>
+				<input type="text" class="popup_textbox" name="inputurl"></input>
+			</div>
+			<div id="popup_bar">
+				<div id="popup_text_container">
+					<h1>Description</h1>
+					<h2>Give your photo a description.</h2>
+				</div>
+				<textarea class="popup_textarea" name="inputdescription">Write a description here.</textarea>
+			</div>
+			<input type="submit" value="Share" class="popup_submit"/><br>
+		</form>
+		<!-- End form -->
+		
+		<!-- End popup input -->
+	</div>
+</div>
+<!-- Popup photo end-->
 
 <div id="bg_container">
 	<!-- Main header start -->
@@ -312,7 +324,7 @@
 				</div>
 				<!-- Link -->
 				<div id="mh_bar_icon_container">
-					<a href="#" onclick="popup('popup_container')">
+					<a href="#" onclick="popup('popup_container_link')">
 					<div id="mh_bar_icon" style="background-image:url(images/link_icon.png);">
 						<div id="mh_bar_icon_text">Link</div>
 					</div>
@@ -320,7 +332,7 @@
 				</div>
 				<!-- Photo -->
 				<div id="mh_bar_icon_container">
-					<a href="#">
+					<a href="#" onclick="popup('popup_container_photo')">
 					<div id="mh_bar_icon" style="background-image:url(images/photo_icon.png);">
 						<div id="mh_bar_icon_text">Photo</div>
 					</div>
@@ -367,7 +379,7 @@
 			<!-- Status profile pic -->
 			<div id="profile_container" style="margin-bottom:0px; top:5px; left:0px;">
 				<div id="profile_text">
-					username
+					<?php echo $username ?>
 				</div>
 			</div>
 			
@@ -396,27 +408,33 @@
 		<!-- Friends container end -->
 		
 		<!-- Datagrams start -->
-		<?php
-			$dg_titles = get_dg_titles();
-			$dg_owners = get_dg_owner();
-			$dg_descriptions = get_dg_column("description");
-			$dg_contents = get_dg_column("content");
-			$dg_types = get_dg_column("type");
-			$dg_date = get_dg_column("created");
-			function printDatagrams() {
-				global $dg_titles, $dg_owners, $dg_descriptions, $dg_contents, $dg_types, $dg_date;
-				for ($i = 0; $i < sizeof($dg_titles); $i++) {
-					if ($dg_types[$i] == "link") {
-						print_dg_link($dg_owners[$i], $dg_titles[$i], $dg_descriptions[$i], $dg_contents[$i], $dg_types[$i], $dg_date[$i]);
-					} else if ($dg_types[$i] == "photo") {
-						print_dg_pic($dg_owners[$i], $dg_titles[$i], $dg_descriptions[$i], $dg_contents[$i], $dg_types[$i], $dg_date[$i]);
-					} else {
-						print_dg($dg_owners[$i], $dg_titles[$i], $dg_descriptions[$i], $dg_contents[$i], $dg_types[$i], $dg_date[$i]);
-					}
+		
+		<?php		
+		$dg_refs = get_dg_refs();
+		$dg_title = get_dg_column("title");
+		$dg_description = get_dg_column("description");
+		$dg_userid = get_dg_column("userid");
+		$dg_type = get_dg_column("type");
+		$dg_content = get_dg_column("content");
+		$dg_created = get_dg_column("created");
+		
+		function printDatagrams() {
+			global $dg_title, $dg_userid, $dg_description, $dg_content, $dg_type, $dg_created;
+			for ($i = 0; $i < sizeof($dg_title); $i++) {
+				if ($dg_type[$i] == "link") {
+					print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i]);
+				} else if ($dg_type[$i] == "photo") {
+					print_dg_pic(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i]);
+				} else {
+					print_dg(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i]);
 				}
 			}
-			printDatagrams();
-		?> 
+		}
+		
+		printDatagrams();
+		
+		?>
+		
 		<!-- Datagrams end -->
 
 	</div>

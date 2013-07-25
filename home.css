@@ -266,7 +266,17 @@ div#friends h2 {
 	width:100%;
 }
 /* Pop up stuff */
-#popup_container {
+#popup_container_link {
+	position:relative;
+	background-color:#eeeeee;
+	top:200px;
+	width:400px;
+	height:400px;
+	margin-bottom:-400px;
+	z-index: 9002;
+}
+
+#popup_container_photo {
 	position:relative;
 	background-color:#eeeeee;
 	top:200px;
@@ -322,7 +332,6 @@ div#popup h1 {
 
 div#popup_icon {
 	background-color:#282828;
-	background-image:url(images/create_link_icon.png);
 	background-repeat:no-repeat;
 	background-position:center;
 	
@@ -450,7 +459,7 @@ div#dg_profile_pic {
 	box-shadow: 1px 1px 5px black;
 }
 
-div#dgprofile_text {
+div#dg_profile_text {
 	padding-top:105px;
 	text-align:center;
 	font-style:normal;
@@ -461,8 +470,8 @@ div#dg_info {
 	position:relative;
 	margin-top:-90px;
 	margin-left:120px;
-	margin-right:-120px
-	width:100%;
+	margin-right:-120px;
+	width:82%;
 	padding-left:5px;
 	padding-bottom:10px;
 	word-wrap:break-word;
@@ -474,15 +483,23 @@ div#dg_info a:hover { color:white; }
 div#dg_info h1 { line-height:15px; text-align:left; padding-right:0px }
 div#dg_info h2 { text-align:left; word-wrap: break-word; padding-right:5px;}
 div#dg_info h3 { padding-right:5px; font-weight:normal; font-size:100%; word-wrap: break-word}
+div#dg_info h4 { 
+	padding-top:10px;
+	font-weight:normal; 
+	font-size:80%; 
+	word-wrap: break-word; 
+	line-height:15px;
+	text-align:left;
+}
 
 div#dg_info_pic {
 	background-color:#d2d2d2;
+	background-repeat:no-repeat;
 	background-position:center;
-	height:auto;
-	width:80%;
-	max-width:620px;  
+	background-size:100%;
+	width:100%;
+	min-height:400px;
 	position:relative;
-	padding:10px;
 	box-shadow: 1px 1px 5px black;
 	border-radius:10px;
 }

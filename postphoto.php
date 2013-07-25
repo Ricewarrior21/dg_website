@@ -45,8 +45,9 @@
 	
 	$date = date('Y-m-d H:i:s');
 	echo $date . "<br>";
-	
-	mySQLQuery("INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', 'link', '$link', '$date')");
+	$query = "INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', 'photo', '$link', '$date')";
+	echo $query;
+	mySQLQuery("INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', 'photo', '$link', '$date')");
 	
 	header('location:home.php');
 ?>
