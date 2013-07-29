@@ -116,10 +116,22 @@
 		}
 		return $dg_column;
 	}
+	
+	function get_dg_profile() {
+		global $dg_userid;
+		$dg_profile = array();
+		for ($i = 0; $i < sizeof($dg_userid); $i++) {
+			$query = "SELECT profile_pic FROM users WHERE id='$dg_userid[$i]'";
+			$result = mySQLQuery($query);
+			$row = mysql_fetch_row($result);
+			$dg_profile[$i] = $row[0];
+		}
+		return $dg_profile;
+	}
 
-	function print_dg($username, $title, $description, $content, $type, $date) {
+	function print_dg($username, $title, $description, $content, $type, $date, $profile_pic) {
 		echo "<div id=\"datagram\">";// Datagram container
-			echo "<div id=\"dg_profile_pic\">"; // Profile pic container
+			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
 					echo "$username";
 				echo "</div>"; // End profile text container
@@ -135,9 +147,9 @@
 		echo "<br>"; // Line breaks for next datagram
 	}
 	
-	function print_dg_link($username, $title, $description, $content, $type, $date) {
+	function print_dg_link($username, $title, $description, $content, $type, $date, $profile_pic) {
 		echo "<div id=\"datagram\">";// Datagram container
-			echo "<div id=\"dg_profile_pic\">"; // Profile pic container
+			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
 					echo "$username";
 				echo "</div>"; // End profile text container
@@ -153,9 +165,9 @@
 		echo "<br>"; // Line breaks for next datagram
 	}
 	
-	function print_dg_pic($username, $title, $description, $content, $type, $date) {
+	function print_dg_pic($username, $title, $description, $content, $type, $date, $profile_pic) {
 		echo "<div id=\"datagram\">";// Datagram container
-			echo "<div id=\"dg_profile_pic\">"; // Profile pic container
+			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
 					echo "$username";
 				echo "</div>"; // End profile text container
@@ -169,6 +181,35 @@
 			echo "</div>"; // End info container
 		echo "</div>"; // End datagram container
 		echo "<br>"; // Line breaks for next datagram
+	}
+	
+	function print_dg_status($username, $content, $type, $date, $profile_pic) {
+		echo "<div id=\"datagram\">";// Datagram container
+			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
+				echo "<div id=\"dg_profile_text\">"; // Profile text container
+					echo "$username";
+				echo "</div>"; // End profile text container
+			echo "</div>"; // End profile pic container
+			echo "<div id=\"dg_info\">"; // Info container
+				echo "<div id=\"dg_status\">"; // Status container
+					echo "<h1>" . $content . "</h1>"; // Title
+					echo "<div id=\"dg_status_after\">"; // Side speech bubble pointer thing
+					echo "</div>"; // End after status bubble
+				echo "</div>"; // End status container
+				echo "<h4>Type of Datagram: <b>" . $type . "</b><br>"; // Tell the type of datagram
+				echo "Created: <i>" . $date . "</i></h4>";
+			echo "</div>"; // End info container
+		echo "</div>"; // End datagram container
+		echo "<br>"; // Line breaks for next datagram
+	}
+
+	// Get the profile url of current user
+	function getProfilePic() {
+		global $userid;
+		$query = "SELECT profile_pic FROM users WHERE id='$userid[0]'";
+		$result = mySQLQuery($query);
+		$profile = mysql_fetch_row($result)[0];
+		return $profile;
 	}
 
 	$username = $_SESSION['username'];
@@ -209,11 +250,11 @@
 				Create a link!
 			</div>
 		</div>
-		<h1>Datagram Link</h1><br><br><br>
+		<h1>Link</h1><br><br><br>
 		<!-- Start popup input -->
 		
 		<!-- Button to close at top right -->
-		<div id="popup_close"><a href="#" onclick="popup('popup_container_link')">X</a></div>
+		<div id="popup_close"><a href="" onclick="popup('popup_container_link')">X</a></div>
 		
 		<!-- Background of textbars/box -->
 		<div id="popup_bar_bg"></div>
@@ -258,17 +299,17 @@
 				Post a photo!
 			</div>
 		</div>
-		<h1>Datagram Photo</h1><br><br><br>
+		<h1>Photo</h1><br><br><br>
 		<!-- Start popup input -->
 		
 		<!-- Button to close at top right -->
-		<div id="popup_close"><a href="#" onclick="popup('popup_container_photo')">X</a></div>
+		<div id="popup_close"><a href="" onclick="popup('popup_container_photo')">X</a></div>
 		
 		<!-- Background of textbars/box -->
 		<div id="popup_bar_bg"></div>
 		
 		<!-- Start form for input of link datagram -->
-		<form action="postphoto.php" method="post">
+		<form action="postphoto.php" method="post" enctype="multipart/form-data">
 			<div id="popup_bar">
 				<div id="popup_text_container">
 					<h1>Title</h1>
@@ -278,10 +319,10 @@
 			</div>
 			<div id="popup_bar">
 				<div id="popup_text_container">
-					<h1>URL</h1>
-					<h2>Copy and paste a URL for an image.</h2>
+					<h1>Upload</h1>
+					<h2>Upload an image from your computer.</h2>
 				</div>
-				<input type="text" class="popup_textbox" name="inputurl"></input>
+				<input type="file" class="popup_textbox" style="border:2px solid white; border-top:2px solid #9a9a9a; border-left:2px solid #9a9a9a" name="inputimage"/>
 			</div>
 			<div id="popup_bar">
 				<div id="popup_text_container">
@@ -299,13 +340,48 @@
 </div>
 <!-- Popup photo end-->
 
+<!-- Popup change profile pic start-->
+<div id="popup_container_profile_pic" style="display:none; height:0px; margin-top:0px;">
+	<div id="popup" style="height:230px; top:200px; margin-top:-127px">
+		<div id="popup_icon" style="background-image:url(images/create_link_icon.png)">
+			<div id="popup_icon_text">
+				Change your profile picture
+			</div>
+		</div>
+		<h1>Profile Picture</h1><br><br><br>
+		<!-- Start popup input -->
+		
+		<!-- Button to close at top right -->
+		<div id="popup_close"><a href="" onclick="popup('popup_container_profile_pic')">X</a></div>
+		
+		<!-- Background of textbars/box -->
+		<div id="popup_bar_bg" style="height:55px; margin-top:20px"></div>
+		
+		<!-- Start form for input of link datagram -->
+		<form action="postprofile.php" method="post" enctype="multipart/form-data">
+			<div id="popup_bar">
+				<div id="popup_text_container">
+					<h1>Upload</h1>
+					<h2>Upload an image from your computer.</h2>
+				</div>
+				<input type="file" class="popup_textbox" style="margin-top:32px; border:2px solid white; border-top:2px solid #9a9a9a; border-left:2px solid #9a9a9a" name="profileimage"/>
+			</div>
+			<input type="submit" value="Submit" class="popup_submit" style="margin-top:10px; margin-left:530px;"/><br>
+		</form>
+		<!-- End form -->
+		
+		<!-- End popup input -->
+	</div>
+</div>
+<!-- Popup change profile pic end-->
+
 <div id="bg_container">
 	<!-- Main header start -->
 	<div id="main_header">
 		<!-- Main header profile picture on left -->
-		<div id="profile_container">
+		<div id="profile_container" style="background-image:url(<?php $profile = getProfilePic(); echo $profile ?>)">
 			<div id="profile_text">
-				Change your profile picture. <!-- Make it so this does something -->
+				<a href="#profile_pic" onclick="popup('popup_container_profile_pic')">Change your profile picture.</a> <!-- Make it so this does something -->
 			</div>
 		</div>
 		<!-- End main profile header -->
@@ -377,7 +453,7 @@
 		<!-- Status container start -->
 		<div id="status_container">
 			<!-- Status profile pic -->
-			<div id="profile_container" style="margin-bottom:0px; top:5px; left:0px;">
+			<div id="profile_container" style="margin-bottom:0px; top:5px; left:0px; background-image:url(<?php echo $profile ?>)">
 				<div id="profile_text">
 					<?php echo $username ?>
 				</div>
@@ -385,8 +461,8 @@
 			
 			<!-- Status profile pic -->
 			<div id="status">
-				<form method="post" action="" class="status_form">
-					<textarea class="status_textbox">Enter your status here.</textarea>
+				<form method="post" action="poststatus.php" class="status_form">
+					<textarea class="status_textbox" name="inputstatus">Enter your status here.</textarea>
 					<input type="submit" value="Share" class="status_share" />
 				</form>
 				<h1>Post a status update!</h1><br>
@@ -408,7 +484,6 @@
 		<!-- Friends container end -->
 		
 		<!-- Datagrams start -->
-		
 		<?php		
 		$dg_refs = get_dg_refs();
 		$dg_title = get_dg_column("title");
@@ -417,16 +492,19 @@
 		$dg_type = get_dg_column("type");
 		$dg_content = get_dg_column("content");
 		$dg_created = get_dg_column("created");
+		$dg_profile_pic = get_dg_profile();
 		
 		function printDatagrams() {
-			global $dg_title, $dg_userid, $dg_description, $dg_content, $dg_type, $dg_created;
+			global $dg_title, $dg_userid, $dg_description, $dg_content, $dg_type, $dg_created, $dg_profile_pic;
 			for ($i = 0; $i < sizeof($dg_title); $i++) {
 				if ($dg_type[$i] == "link") {
-					print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i]);
+					print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
 				} else if ($dg_type[$i] == "photo") {
-					print_dg_pic(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i]);
+					print_dg_pic(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+				} else if ($dg_type[$i] == "status") {
+					print_dg_status(getUsername($dg_userid[$i]), $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
 				} else {
-					print_dg(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i]);
+					print_dg(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
 				}
 			}
 		}

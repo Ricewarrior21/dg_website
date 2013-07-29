@@ -70,6 +70,7 @@ div#profile_container {
 	background-image: url(images/profile.jpg);
 	background-repeat:no-repeat;
 	background-position:center;
+	background-size:auto 100%;
 	height:100px;
 	width:100px;  
 	position:relative;
@@ -85,6 +86,10 @@ div#profile_text {
 	text-align:center;
 	font-size:80%;
 }
+
+div#profile_text a:link { color:#c5ecc5; text-decoration:none; }
+div#profile_text a:visited { color:#c5ecc5; }
+div#profile_text a:hover { color:white; }
 
 /* Container for main header with icons */
 div#main_header_bar {
@@ -286,6 +291,16 @@ div#friends h2 {
 	z-index: 9002;
 }
 
+#popup_container_profile_pic {
+	position:relative;
+	background-color:#eeeeee;
+	top:200px;
+	width:400px;
+	height:400px;
+	margin-bottom:-400px;
+	z-index: 9002;
+}
+
 div#popup {
 	position:relative;
 	background-color:#eeeeee;
@@ -419,7 +434,7 @@ div#popup_text_container h2 {
 	resize:none;
 	overflow:hidden;
 	
-	border:1px solid white;
+	border:2px solid white;
 	border-top:2px solid #9a9a9a;
 	border-left:2px solid #9a9a9a;
 	border-radius:5px;
@@ -450,6 +465,7 @@ div#dg_profile_pic {
 	background-image: url(images/profile.jpg);
 	background-repeat:no-repeat;
 	background-position:center;
+	background-size:auto 100%;
 	height:100px;
 	width:100px;  
 	position:relative;
@@ -493,13 +509,46 @@ div#dg_info h4 {
 }
 
 div#dg_info_pic {
-	background-color:#d2d2d2;
+	background-color:black; /* Original color: #d2d2d2 */
 	background-repeat:no-repeat;
 	background-position:center;
-	background-size:100%;
+	background-size:auto 100%;
 	width:100%;
 	min-height:400px;
 	position:relative;
 	box-shadow: 1px 1px 5px black;
 	border-radius:10px;
+}
+
+div#dg_status {
+	margin-left:15px;
+	position: relative;
+	width:auto;
+	height: auto;
+	padding: 0px;
+	background: #FFFFFF;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
+div#dg_status h1 {
+	text-align:center;
+	color:black;
+	font-size:15px;
+	padding:15px;
+	line-height:15px;
+}
+
+div#dg_status_after {
+	content: "";
+	position: absolute;
+	top:10px;
+	left: -20px;
+	border-style: solid;
+	border-width: 8px 20px 8px 0px;
+	border-color: transparent #FFFFFF;
+	display: block;
+	width: 0;
+	z-index: 1;
 }

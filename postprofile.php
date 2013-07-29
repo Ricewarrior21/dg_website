@@ -1,15 +1,15 @@
 <?php 
 	session_start();
-	if (isset($_FILES['inputimage'])) {
+	if (isset($_FILES['profileimage'])) {
 		$errors = array();
 
 		$allowed_ext = array('jpg', 'jpeg', 'png', 'gif');
 		
-		$file_name = $_FILES['inputimage']['name'];
+		$file_name = $_FILES['profileimage']['name'];
 		$file_ext = strtolower(end(explode('.', $file_name)));
-		$file_size = $_FILES['inputimage']['size'];
-		$file_tmp = $_FILES['inputimage']['tmp_name'];
-
+		$file_size = $_FILES['profileimage']['size'];
+		$file_tmp = $_FILES['profileimage']['tmp_name'];
+		
 		if (in_array($file_ext, $allowed_ext) == false) {
 			$errors[] = 'Extension not allowed';
 		}
@@ -22,7 +22,7 @@
 			// upload the file
 			$target_path = "uploads/" . $file_name;
 			if(move_uploaded_file($file_tmp, $target_path)) {
-				echo "Uploaded!";
+				echo "Uploaded!" . "<br>";
 			} else {
 				echo "Failed to upload the file";
 			}
@@ -34,11 +34,8 @@
 		}
 	}
 	$userid = $_SESSION['userid'];
-	$username = $_SESSION['username'];
-	$path = "uploads/" . $_FILES['inputimage']['name'];
-	$link = mysql_real_escape_string($path);
-	$title = $_POST['inputtitle'];
-	$description = $_POST['inputdescription'];
+	$path = "uploads/" . $_FILES['profileimage']['name'];
+	$profile = mysql_real_escape_string($path);
 	
 	$host = "localhost";
 	$user = "jhansel1";
@@ -72,18 +69,10 @@
 			return $result2;
 		}
 	}
-	
-	echo $userid . "<br>";
-	echo $username . "<br>";
-	echo $link . "<br>";
-	echo $title . "<br>";
-	echo $description . "<br>";
-	
-	$date = date('Y-m-d H:i:s');
-	echo $date . "<br>";
-	$query = "INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', 'photo', '$link', '$date')";
+
+	$query = "UPDATE users SET profile_pic = '$profile' WHERE id = '$userid'";
 	echo $query;
-	mySQLQuery("INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', 'photo', '$link', '$date')");
+	mySQLQuery($query);
 	
-	// header('location:home.php'); */
+	header('location:home.php');
 ?>
