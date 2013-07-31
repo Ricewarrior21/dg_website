@@ -29,6 +29,7 @@ if ($count == 1) {
 session_start();
 $_SESSION['username'] = $inputuser;
 $_SESSION['password'] = $inputpass;
+$_SESSION['home_status'] = 0;
 header("location:home.php");
 } else {
 echo "Wrong Username or Password";

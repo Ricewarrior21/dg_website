@@ -239,6 +239,7 @@ div#friends {
 }
 
 div#friends h1 {
+	color:#FFFFFF;
 	line-height:100%;
 	margin-top:0px;
 	margin-bottom:5px;
@@ -250,6 +251,10 @@ div#friends h2 {
 	margin-bottom:0px; 
 	margin-top:15px
 }
+
+div#friends h2 a:link { color:#FFFFFF; text-decoration:none; }
+div#friends h2 a:visited { color:#FFFFFF; text-decoration:none; }
+ddiv#friends h2 a:hover { color:white; text-decoration:none; }
 
 .friends_divider {
 	height:1px;
@@ -482,6 +487,10 @@ div#dg_profile_text {
 	font-size:80%;
 }
 
+div#dg_profile_text a:link { color:#c5ecc5; text-decoration:none; }
+div#dg_profile_text a:visited { color:#c5ecc5; text-decoration:none; }
+div#dg_profile_text a:hover { color:white; text-decoration:none; }
+
 div#dg_info {
 	position:relative;
 	margin-top:-90px;
@@ -493,8 +502,8 @@ div#dg_info {
 	word-wrap:break-word;
 }
 
-div#dg_info a:link { color:#269926; }
-div#dg_info a:visited { color:#269926; }
+div#dg_info a:link { color:#c5ecc5; }
+div#dg_info a:visited { color:#c5ecc5; }
 div#dg_info a:hover { color:white; }
 div#dg_info h1 { line-height:15px; text-align:left; padding-right:0px }
 div#dg_info h2 { text-align:left; word-wrap: break-word; padding-right:5px;}

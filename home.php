@@ -86,6 +86,13 @@
 		return $username[0];
 	}
 	
+	function get_userid($username) {
+		$query = "SELECT id FROM users WHERE username = '$username'";
+		$result = mySQLQuery($query);
+		$userid = mysql_fetch_row($result)[0];
+		return $userid;
+	}
+	
 	function get_dg_refs() {
 		global $userid, $friends_id;
 		$query = "SELECT ref FROM datagrams WHERE userid = '" . $userid[0][0] . "'";
@@ -105,11 +112,10 @@
 		return $dg_refs;
 	}
 	
-	function get_dg_column($inputColumn) {
-		global $dg_refs;
+	function get_dg_column($input_refs, $inputColumn) {
 		$dg_column = array();
-		for ($i = 0; $i < sizeof($dg_refs); $i++) {
-			$query = "SELECT $inputColumn FROM datagrams WHERE ref = '$dg_refs[$i]' ORDER BY created DESC";
+		for ($i = 0; $i < sizeof($input_refs); $i++) {
+			$query = "SELECT $inputColumn FROM datagrams WHERE ref = '$input_refs[$i]' ORDER BY created DESC";
 			$result = mySQLQuery($query);
 			$row = mysql_fetch_row($result);
 			$dg_column[$i] = $row[0];
@@ -117,11 +123,10 @@
 		return $dg_column;
 	}
 	
-	function get_dg_profile() {
-		global $dg_userid;
+	function get_dg_profile($input_userids) {
 		$dg_profile = array();
-		for ($i = 0; $i < sizeof($dg_userid); $i++) {
-			$query = "SELECT profile_pic FROM users WHERE id='$dg_userid[$i]'";
+		for ($i = 0; $i < sizeof($input_userids); $i++) {
+			$query = "SELECT profile_pic FROM users WHERE id='$input_userids[$i]'";
 			$result = mySQLQuery($query);
 			$row = mysql_fetch_row($result);
 			$dg_profile[$i] = $row[0];
@@ -133,7 +138,7 @@
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
-					echo "$username";
+					echo "<a href=\"home.php?home=$username\">$username</a>";
 				echo "</div>"; // End profile text container
 			echo "</div>"; // End profile pic container
 			echo "<div id=\"dg_info\">";
@@ -151,7 +156,7 @@
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
-					echo "$username";
+					echo "<a href=\"home.php?home=$username\">$username</a>";
 				echo "</div>"; // End profile text container
 			echo "</div>"; // End profile pic container
 			echo "<div id=\"dg_info\">";
@@ -169,7 +174,7 @@
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
-					echo "$username";
+					echo "<a href=\"home.php?home=$username\">$username</a>";
 				echo "</div>"; // End profile text container
 			echo "</div>"; // End profile pic container
 			echo "<div id=\"dg_info\">";
@@ -187,7 +192,7 @@
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
-					echo "$username";
+					echo "<a href=\"home.php?home=$username\">$username</a>";
 				echo "</div>"; // End profile text container
 			echo "</div>"; // End profile pic container
 			echo "<div id=\"dg_info\">"; // Info container
@@ -210,6 +215,42 @@
 		$result = mySQLQuery($query);
 		$profile = mysql_fetch_row($result)[0];
 		return $profile;
+	}
+	
+	function printDatagrams($dg_refs) {
+		$dg_title = get_dg_column($dg_refs, "title");
+		$dg_description = get_dg_column($dg_refs, "description");
+		$dg_userid = get_dg_column($dg_refs, "userid");
+		$dg_type = get_dg_column($dg_refs, "type");
+		$dg_content = get_dg_column($dg_refs, "content");
+		$dg_created = get_dg_column($dg_refs, "created");
+		$dg_profile_pic = get_dg_profile($dg_userid);
+		for ($i = 0; $i < sizeof($dg_title); $i++) {
+			if ($dg_type[$i] == "link") {
+				print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+			} else if ($dg_type[$i] == "photo") {
+				print_dg_pic(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+			} else if ($dg_type[$i] == "status") {
+				print_dg_status(getUsername($dg_userid[$i]), $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+			} else {
+				print_dg(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+			}
+		}
+	}
+	
+	function printUserDatagrams($username) {
+		$userid = get_userid($username);
+		$dg_query = "SELECT ref FROM datagrams WHERE userid = '$userid' ORDER BY created DESC";
+		$result = mySQLQuery($dg_query);
+		$temp = array();
+		while($row = mysql_fetch_row($result)) {
+			$temp[] = $row;
+		}
+		$dg_refs = array();
+		for($i = 0; $i < sizeof($temp); $i++) {
+			$dg_refs[$i] = $temp[$i][0];
+		}
+		printDatagrams($dg_refs);
 	}
 
 	$username = $_SESSION['username'];
@@ -392,7 +433,7 @@
 			<div class="mh_bar">
 				<!-- Home -->
 				<div id="mh_bar_icon_container">
-					<a href="home.php">
+					<a href="home.php?home=0">
 					<div id="mh_bar_icon" style="background-image:url(images/home_icon.png);">
 						<div id="mh_bar_icon_text">Home</div>
 					</div>
@@ -424,7 +465,7 @@
 				</div>
 				<!-- Messages -->
 				<div id="mh_bar_icon_container">
-					<a href="#">
+					<a href="home.php?home=messages">
 					<div id="mh_bar_icon" style="background-image:url(images/message_icon.png);">
 						<div id="mh_bar_icon_text">Messages</div>
 					</div>
@@ -432,7 +473,7 @@
 				</div>
 				<!-- Friends -->
 				<div id="mh_bar_icon_container">
-					<a href="#">
+					<a href="home.php?home=friends">
 					<div id="mh_bar_icon" style="background-image:url(images/options_icon.png);">
 						<div id="mh_bar_icon_text">Friends</div>
 					</div>
@@ -455,7 +496,7 @@
 			<!-- Status profile pic -->
 			<div id="profile_container" style="margin-bottom:0px; top:5px; left:0px; background-image:url(<?php echo $profile ?>)">
 				<div id="profile_text">
-					<?php echo $username ?>
+					<?php echo "<a href=\"home.php?home=$username\">$username</a>" ?>
 				</div>
 			</div>
 			
@@ -477,40 +518,33 @@
 			<!-- Function for printing friends out -->
 			<?php 
 				for ($i = 0; $i < sizeof($friends); $i++) {
-					echo "<h2>" . $friends[$i] . "</h2><br>";
+					echo "<h2><a href=home.php?home=" . $friends[$i] . ">" . $friends[$i] . "</a></h2><br>";
 				}
 			?>
 		</div>
 		<!-- Friends container end -->
 		
 		<!-- Datagrams start -->
-		<?php		
-		$dg_refs = get_dg_refs();
-		$dg_title = get_dg_column("title");
-		$dg_description = get_dg_column("description");
-		$dg_userid = get_dg_column("userid");
-		$dg_type = get_dg_column("type");
-		$dg_content = get_dg_column("content");
-		$dg_created = get_dg_column("created");
-		$dg_profile_pic = get_dg_profile();
+		<?php
 		
-		function printDatagrams() {
-			global $dg_title, $dg_userid, $dg_description, $dg_content, $dg_type, $dg_created, $dg_profile_pic;
-			for ($i = 0; $i < sizeof($dg_title); $i++) {
-				if ($dg_type[$i] == "link") {
-					print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
-				} else if ($dg_type[$i] == "photo") {
-					print_dg_pic(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
-				} else if ($dg_type[$i] == "status") {
-					print_dg_status(getUsername($dg_userid[$i]), $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
-				} else {
-					print_dg(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
-				}
-			}
+		$dg_refs = get_dg_refs();
+		
+		if(isset($_GET['home'])) {
+			$_SESSION['home_status'] = $_GET['home'];
 		}
 		
-		printDatagrams();
+		$status = $_SESSION['home_status'];
 		
+		if ($status == "0") {
+			printDatagrams($dg_refs);
+		} else if ($status == "friends") {
+			// DO NOTHING
+		} else if ($status == "messages") {
+			
+		} else {
+			// print username datagrams that was clicked
+			printUserDatagrams($status);
+		}
 		?>
 		
 		<!-- Datagrams end -->
