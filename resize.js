@@ -1,3 +1,5 @@
-$("#p1").mouseup(function(){
-  alert("Mouse up over p1!");
+$(document).ready(function() {
+	$(".comments_header").click(function() {
+		$("*").css("background-color", "red");
+	});
 });

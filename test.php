@@ -1,27 +1,17 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html public "-//W3C//DTD HTML 4.01//EN">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
 <head>
-<script src="jquery-1.10.2.min.js">
-</script>
-<style>
-div#test {
-	background-color:black;
-	width:500px;
-	height:600px;
-}
-</style>
-<script>
-$(document).ready(function(){
-	if $('#test').height() > $('#img').height() {
-		$('#img').height('100px');
-	}
-});
-</script>
+	<title>Webpage Name</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 </head>
 
 <body>
-<div id="test">
-	<img id="img" src="http://l2.yimg.com/bt/api/res/1.2/JP9aTpASyLTC2AOIHHdStA--/YXBwaWQ9eW5ld3M7Zmk9aW5zZXQ7aD00MjA7cT04NTt3PTYzMA--/http://l.yimg.com/os/152/2013/02/25/0-CATERS-Diver-Takes-A-School-Photo-01-jpg_215006.jpg"></img>
-</div>
+	<p class="comments_header">Comments</p>
+	
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+
 </body>
 </html>

@@ -85,5 +85,5 @@
 	echo $query;
 	mySQLQuery("INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', 'photo', '$link', '$date')");
 	
-	// header('location:home.php'); */
+	header('location:home.php'); */
 ?>

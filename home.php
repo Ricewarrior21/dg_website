@@ -1,4 +1,11 @@
-<?php session_start();
+<?php 
+	session_start();
+	if(empty ($_SESSION['home_status'])) {
+		echo "An error occurred!" . "<br>";
+		echo "Please login first!" . "<br>";
+		header("Refresh: 1.5; url=index.php");
+		exit();
+	}
 	$host = "localhost";
 	$user = "jhansel1";
 	$pass = "jhansel1";
@@ -86,6 +93,13 @@
 		return $username[0];
 	}
 	
+	function getProfilePic($input_userid) {
+		$query = "SELECT profile_pic FROM users WHERE id='$input_userid'";
+		$result = mySQLQuery($query);
+		$username = mysql_fetch_row($result);
+		return $username[0];
+	}
+	
 	function get_userid($username) {
 		$query = "SELECT id FROM users WHERE username = '$username'";
 		$result = mySQLQuery($query);
@@ -134,7 +148,7 @@
 		return $dg_profile;
 	}
 
-	function print_dg($username, $title, $description, $content, $type, $date, $profile_pic) {
+	function print_dg($username, $title, $description, $content, $type, $date, $profile_pic, $ref) {
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
@@ -152,7 +166,7 @@
 		echo "<br>"; // Line breaks for next datagram
 	}
 	
-	function print_dg_link($username, $title, $description, $content, $type, $date, $profile_pic) {
+	function print_dg_link($username, $title, $description, $content, $type, $date, $profile_pic, $ref) {
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
@@ -163,6 +177,7 @@
 				echo "<h1>" . $title . "</h1>"; // Title
 				echo "<h2>" . $description . "</h2>"; // Description
 				echo "<h3><a href=" . $content . ">" . $content . "</a></h3>"; // Description
+				print_comments($ref);
 				echo "<h4>Type of Datagram: <b>" . $type . "</b><br>"; // Tell the type of datagram
 				echo "Created: <i>" . $date . "</i></h4><br>";
 			echo "</div>"; // End info container
@@ -170,7 +185,17 @@
 		echo "<br>"; // Line breaks for next datagram
 	}
 	
-	function print_dg_pic($username, $title, $description, $content, $type, $date, $profile_pic) {
+	function getNumberOfComments($ref) {
+		$query = "SELECT ref FROM comments WHERE datagram = '$ref' ORDER BY created DESC";
+		$result = mySQLQuery($query);
+		$temp = array();
+		while($row = mysql_fetch_row($result)) {
+			$temp[] = $row;
+		}
+		return sizeof($temp);
+	}
+	
+	function print_dg_pic($username, $title, $description, $content, $type, $date, $profile_pic, $ref) {
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
@@ -181,6 +206,7 @@
 				echo "<h1>" . $title . "</h1>"; // Title
 				echo "<h2>" . $description . "</h2>"; // Description
 				echo "<h3><a href=\"$content\"><div id=\"dg_info_pic\" style=\"background-image:url($content);\"></div></a></h3>"; // Content
+				print_comments($ref);
 				echo "<h4>Type of Datagram: <b>" . $type . "</b><br>"; // Tell the type of datagram
 				echo "Created: <i>" . $date . "</i></h4>";
 			echo "</div>"; // End info container
@@ -188,7 +214,7 @@
 		echo "<br>"; // Line breaks for next datagram
 	}
 	
-	function print_dg_status($username, $content, $type, $date, $profile_pic) {
+	function print_dg_status($username, $content, $type, $date, $profile_pic, $ref) {
 		echo "<div id=\"datagram\">";// Datagram container
 			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
 				echo "<div id=\"dg_profile_text\">"; // Profile text container
@@ -201,6 +227,28 @@
 					echo "<div id=\"dg_status_after\">"; // Side speech bubble pointer thing
 					echo "</div>"; // End after status bubble
 				echo "</div>"; // End status container
+				print_comments($ref);
+				echo "<h4>Type of Datagram: <b>" . $type . "</b><br>"; // Tell the type of datagram
+				echo "Created: <i>" . $date . "</i></h4>";
+			echo "</div>"; // End info container
+		echo "</div>"; // End datagram container
+		echo "<br>"; // Line breaks for next datagram
+	}
+	
+	function print_dg_video($username, $title, $description, $content, $type, $date, $profile_pic, $ref) {
+		$yt_code = end(explode('=', $content));
+		$yt_embed = "//www.youtube.com/embed/" . $yt_code . "?rel=0";
+		echo "<div id=\"datagram\">";// Datagram container
+			echo "<div id=\"dg_profile_pic\" style=\"background-image:url($profile_pic)\">"; // Profile pic container
+				echo "<div id=\"dg_profile_text\">"; // Profile text container
+					echo "<a href=\"home.php?home=$username\">$username</a>";
+				echo "</div>"; // End profile text container
+			echo "</div>"; // End profile pic container
+			echo "<div id=\"dg_info\">";
+				echo "<h1>" . $title . "</h1>"; // Title
+				echo "<h2>" . $description . "</h2>"; // Description
+				echo "<h3><iframe width=\"560\" height=\"315\" src=\"$yt_embed\" frameborder=\"0\" allowfullscreen></iframe></h3>"; // Content
+				print_comments($ref);
 				echo "<h4>Type of Datagram: <b>" . $type . "</b><br>"; // Tell the type of datagram
 				echo "Created: <i>" . $date . "</i></h4>";
 			echo "</div>"; // End info container
@@ -209,7 +257,7 @@
 	}
 
 	// Get the profile url of current user
-	function getProfilePic() {
+	function getCurrentProfilePic() {
 		global $userid;
 		$query = "SELECT profile_pic FROM users WHERE id='$userid[0]'";
 		$result = mySQLQuery($query);
@@ -227,13 +275,15 @@
 		$dg_profile_pic = get_dg_profile($dg_userid);
 		for ($i = 0; $i < sizeof($dg_title); $i++) {
 			if ($dg_type[$i] == "link") {
-				print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+				print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i], $dg_refs[$i]);
 			} else if ($dg_type[$i] == "photo") {
-				print_dg_pic(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+				print_dg_pic(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i], $dg_refs[$i]);
 			} else if ($dg_type[$i] == "status") {
-				print_dg_status(getUsername($dg_userid[$i]), $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+				print_dg_status(getUsername($dg_userid[$i]), $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i], $dg_refs[$i]);
+			} else if ($dg_type[$i] == "video") {
+				print_dg_video(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i], $dg_refs[$i]);
 			} else {
-				print_dg(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i]);
+				print_dg(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i], $dg_refs[$i]);
 			}
 		}
 	}
@@ -252,6 +302,95 @@
 		}
 		printDatagrams($dg_refs);
 	}
+	
+	function get_comments_refs($ref) {
+		$query = "SELECT ref FROM comments WHERE datagram='$ref' ORDER BY created DESC";
+		$result = mySQLQuery($query);
+		$temp = array();
+		$comments_refs = array();
+		while($row = mysql_fetch_row($result)) {
+			$temp[] = $row;
+		}
+		for($i = 0; $i < sizeof($temp); $i++) {
+			$comments_refs[$i] = $temp[$i][0];
+		}
+		return $comments_refs;
+	}
+
+	function get_comment_column($comments_refs, $column) {
+		$comments_column = array();
+		for($i = 0; $i < sizeof($comments_refs); $i++) {
+			$query = "SELECT $column FROM comments WHERE ref = '$comments_refs[$i]' ORDER BY created DESC";
+			$result = mySQLQuery($query);
+			$row = mysql_fetch_row($result);
+			$comments_column[$i] = $row[0];
+		}
+		return $comments_column;
+	}
+
+	function print_comments($ref) {
+		$refs = get_comments_refs($ref);
+		
+		if (empty($refs)) {
+			global $profile;
+			echo "<div class=\"post_comment_container\">"; // Start post comment container
+				echo "<p class=\"commentbox\" style=\"color:#c5ecc5\">Post a comment</p>";
+				echo "<div id=\"post_comment_icon\" style=\"background-image:url('$profile')\">";
+					echo "<div id=\"post_comment_icon_text\">Post a comment!</div>";
+				echo "</div>";
+				echo "<div id=\"post_comment\">";
+					echo "<form method=\"post\" action=\"comment.php?ref=$ref\">"; // ref says what datagram to create comment for
+						echo "<textarea class=\"comment_textbox\" name=\"inputcomment\">Enter a comment here.</textarea>";
+						echo "<input type=\"submit\" value=\"Submit\" class=\"status_share\" style=\"margin-left:465px;\" />";
+					echo "</form>";
+				echo "</div>";
+			echo "</div>"; // End post comment container
+			return false;
+		} else {
+			$creator = get_comment_column($refs, "creator");
+			$datagram = get_comment_column($refs, "datagram");
+			$content = get_comment_column($refs, "content");
+			$created = get_comment_column($refs, "created");
+			
+			echo "<div class=\"dg_comment_container\">"; // Start comment container
+				echo "<p class=\"comments_header\" style=\"font-size:14px; font-weight:bold; color:#c5ecc5 \">";
+					echo "Comments";
+				echo "</p>";
+			
+			// Printing center
+			for ($i = 0; $i < sizeof($refs); $i++) {
+				$profile = getProfilePic($creator[$i]);
+				$username = getUsername($creator[$i]);
+				echo "<div class=\"dg_comment\">"; // Start comment
+					echo "<div class=\"dg_comments_bubble\">"; // Start bubble thing
+					echo "<div id=\"dg_comments_profile\" style=\"background-image:url('$profile')\">";
+						echo "<div id=\"dg_comments_profile_text\">";
+							echo "$username";
+						echo "</div>";
+					echo "</div>";
+					echo "<p>$content[$i]</p>";
+					echo "<p style=\"font-size:80%;\">Posted on: $created[$i]</p>";
+					echo "</div>";
+					
+				echo "</div>"; // End comment;
+			}
+			echo "</div>"; // End comment container
+		}
+		
+		global $profile;
+		echo "<div class=\"post_comment_container\">"; // Start post comment container
+			echo "<p class=\"commentbox\" style=\"color:#c5ecc5\">Post a comment</p>";
+			echo "<div id=\"post_comment_icon\" style=\"background-image:url('$profile')\">";
+				echo "<div id=\"post_comment_icon_text\">Post a comment!</div>";
+			echo "</div>";
+			echo "<div id=\"post_comment\">";
+				echo "<form method=\"post\" action=\"comment.php?ref=$ref\">"; // ref says what datagram to create comment for
+					echo "<textarea class=\"comment_textbox\" name=\"inputcomment\">Enter a comment here.</textarea>";
+					echo "<input type=\"submit\" value=\"Submit\" class=\"status_share\" style=\"margin-left:465px;\" />";
+				echo "</form>";
+			echo "</div>";
+		echo "</div>"; // End post comment container
+	}
 
 	$username = $_SESSION['username'];
 	$r1 = mySQLQuery("SELECT id FROM users where username = '$username'");
@@ -269,9 +408,6 @@
 <style>
 
 </style>
-
-<script type="text/javascript" src="csspopup.js">
-</script>
 
 <body>
 
@@ -381,6 +517,56 @@
 </div>
 <!-- Popup photo end-->
 
+<!-- Popup video start-->
+<div id="popup_container_video" style="display:none;">
+	<div id="popup">
+		<div id="popup_icon" style="background-image:url(images/create_link_icon.png)">
+			<div id="popup_icon_text">
+				Post a video!
+			</div>
+		</div>
+		<h1>Video</h1><br><br><br>
+		<!-- Start popup input -->
+		
+		<!-- Button to close at top right -->
+		<div id="popup_close"><a href="" onclick="popup('popup_container_video')">X</a></div>
+		
+		<!-- Background of textbars/box -->
+		<div id="popup_bar_bg"></div>
+		
+		<!-- Start form for input of link datagram -->
+		<form action="postvideo.php" method="post">
+			<div id="popup_bar">
+				<div id="popup_text_container">
+					<h1>Title</h1>
+					<h2>Give your video a title.</h2>
+				</div>
+				<input type="text" class="popup_textbox" name="inputtitle"></input>
+			</div>
+			<div id="popup_bar">
+				<div id="popup_text_container">
+					<h1>URL</h1>
+					<h2>Copy and paste a Youtube URL.</h2>
+				</div>
+				<input type="text" class="popup_textbox" name="inputurl"></input>
+			</div>
+			<div id="popup_bar">
+				<div id="popup_text_container">
+					<h1>Description</h1>
+					<h2>Give your video a description.</h2>
+				</div>
+				<textarea class="popup_textarea" name="inputdescription">Write a description here.</textarea>
+			</div>
+			<input type="submit" value="Share" class="popup_submit"/><br>
+		</form>
+		<!-- End form -->
+		
+		<!-- End popup input -->
+	</div>
+</div>
+<!-- Popup video end-->
+
+
 <!-- Popup change profile pic start-->
 <div id="popup_container_profile_pic" style="display:none; height:0px; margin-top:0px;">
 	<div id="popup" style="height:230px; top:200px; margin-top:-127px">
@@ -420,7 +606,7 @@
 	<!-- Main header start -->
 	<div id="main_header">
 		<!-- Main header profile picture on left -->
-		<div id="profile_container" style="background-image:url(<?php $profile = getProfilePic(); echo $profile ?>)">
+		<div id="profile_container" style="background-image:url(<?php $profile = getCurrentProfilePic(); echo $profile ?>)">
 			<div id="profile_text">
 				<a href="#profile_pic" onclick="popup('popup_container_profile_pic')">Change your profile picture.</a> <!-- Make it so this does something -->
 			</div>
@@ -433,7 +619,7 @@
 			<div class="mh_bar">
 				<!-- Home -->
 				<div id="mh_bar_icon_container">
-					<a href="home.php?home=0">
+					<a href="home.php?home=home">
 					<div id="mh_bar_icon" style="background-image:url(images/home_icon.png);">
 						<div id="mh_bar_icon_text">Home</div>
 					</div>
@@ -457,7 +643,7 @@
 				</div>
 				<!-- Video -->
 				<div id="mh_bar_icon_container">
-					<a href="#">
+					<a href="#" onclick="popup('popup_container_video')">
 					<div id="mh_bar_icon" style="background-image:url(images/video_icon.png);">
 						<div id="mh_bar_icon_text">Video</div>
 					</div>
@@ -526,7 +712,7 @@
 		
 		<!-- Datagrams start -->
 		<?php
-		
+
 		$dg_refs = get_dg_refs();
 		
 		if(isset($_GET['home'])) {
@@ -535,7 +721,7 @@
 		
 		$status = $_SESSION['home_status'];
 		
-		if ($status == "0") {
+		if ($status == "home") {
 			printDatagrams($dg_refs);
 		} else if ($status == "friends") {
 			// DO NOTHING
@@ -545,6 +731,7 @@
 			// print username datagrams that was clicked
 			printUserDatagrams($status);
 		}
+		
 		?>
 		
 		<!-- Datagrams end -->
@@ -552,6 +739,10 @@
 	</div>
 	<!-- Main body end -->
 </div>
+
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="comments.js"></script>
+<script type="text/javascript" src="csspopup.js"></script>
 
 </body>
 </html>
