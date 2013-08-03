@@ -689,3 +689,124 @@ div#post_comment {
 	border-radius:5px;
 	font-family:Verdana, Geneva, sans-serif;
 }
+
+div#messages_container {
+	border:1px solid #489748;
+	margin-top:10px;
+	width:100%;
+	min-height:auto;
+}
+
+.message_icon {
+	background-color:#282828;
+	background-image: url(images/profile.jpg);
+	background-repeat:no-repeat;
+	background-position:center;
+	background-size:auto 100%;
+	float:left;
+	top:5px;
+	left:5px;
+	height:40px;
+	width:40px;  
+	position:relative;
+	border-radius:5px;
+	box-shadow: 1px 1px 5px black;
+	word-wrap: break-word;
+}
+
+.message {
+	margin-top:5px;
+	background-color:#4b514b;
+	border:3px solid #d2d2d2;
+	text-align:left;
+	width:97%;
+	height:auto;
+	min-height:50px;
+	margin-left:auto;
+	margin-right:auto;
+	border-radius:10px;
+	box-shadow: 1px 1px 5px black;
+}
+
+.message_title {
+	background-color:#4b514b;
+	font-size:14px;
+	margin-left:55px;
+	padding-bottom:5px;
+	margin-top:7px;
+}
+
+.message_username {
+	font-size:80%;
+	margin-top:-14px;
+	margin-left:55px;
+}
+
+.message_timestamp {
+	font-size:80%;
+	margin-top:-30px;
+	margin-right:5px;
+	text-align:right;
+}
+
+.message_content {
+	color:black;
+	margin-top:15px;
+	padding:5px;
+	margin-left:50px;
+	margin-right:5px;
+	margin-bottom:5px;
+	height:auto;
+	background-color:#d2d2d2;
+	border-radius:5px;
+	border-top:2px solid #9a9a9a;
+	border-left:2px solid #9a9a9a;
+	border-right:2px solid #eeeeee;
+	border-bottom:2px solid #eeeeee;
+}
+
+.message_reply {
+	margin-top:0px;
+	margin-bottom:5px;
+	margin-left:710px;
+	box-shadow: 1px 1px 3px black;
+	border-radius:5px;
+	padding-left:12px;
+	padding-right:12px;
+}
+
+.message_reply_container {
+
+}
+
+.message_reply_textarea {
+	background-color:#a3e7a3;
+	width:86%;
+	height:100px;
+	resize:none;
+	margin-left:100px;
+	margin-right:500px;
+	margin-top:10px;
+	margin-bottom:10px;
+	border-radius:5px;
+	border:3px solid #eeeeee;
+	font-family:Verdana, Geneva, sans-serif;
+}
+
+.message_reply_icon {
+	background-color:#282828;
+	background-image: url(images/profile.jpg);
+	background-repeat:no-repeat;
+	background-position:center;
+	background-size:auto 100%;
+	float:left;
+	top:10px;
+	left:50px;
+	height:40px;
+	width:40px;  
+	margin-bottom:-40px;
+	position:relative;
+	border-radius:5px;
+	box-shadow: 1px 1px 5px black;
+	word-wrap: break-word;
+}

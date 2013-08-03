@@ -725,17 +725,83 @@
 			printDatagrams($dg_refs);
 		} else if ($status == "friends") {
 			// DO NOTHING
+			echo "You're on the friends page";
+			echo "<h2>Friends</h2>";
 		} else if ($status == "messages") {
-			
+			echo "<h2>Messages</h2>";
+			printMessages($message_refs);
 		} else {
 			// print username datagrams that was clicked
 			printUserDatagrams($status);
 		}
 		
+		function get_message_refs() {
+			global $userid;
+			$user = $userid[0][0];
+			$query = "SELECT ref FROM messages WHERE reciever = '$user' ORDER BY sent DESC";
+			$result = mySQLQuery($query);
+			$temp = array();
+			while($row = mysql_fetch_row($result)) {
+				$temp[] = $row;
+			}
+			$message_refs = array();
+			for($i = 0; $i < sizeof($temp); $i++) {
+				$message_refs[$i] = $temp[$i][0];
+			}
+			return $message_refs;
+		}
+		
+		function get_message_column($message_refs, $column) {
+			$message_column = array();
+			for ($i = 0; $i < sizeof($message_refs); $i++) {
+				$query = "SELECT $column FROM messages WHERE ref ='$message_refs[$i]' ORDER BY sent DESC";
+				$result = mySQLQuery($query);
+				$row = mysql_fetch_row($result);
+				$message_column[$i] = $row[0];
+			}
+			return $message_column;
+		}
+		
+		$message_refs = get_message_refs();
+
+		function printMessages($msg_refs) {
+			$msg_refs = get_message_refs();
+			$msg_sender = get_message_column($msg_refs, "sender");
+			$msg_reciever = get_message_column($msg_refs, "reciever");
+			$msg_title = get_message_column($msg_refs, "title");
+			$msg_message = get_message_column($msg_refs, "message");
+			$msg_sent = get_message_column($msg_refs, "sent");
+			
+			$thisProfile = getCurrentProfilePic();
+			
+			echo "<div id=\"messages_container\">"; // Start Message container
+			
+			for($i = 0; $i < sizeof($msg_refs); $i++) {
+				$username = getUsername($msg_sender[$i]);
+				$profile = getProfilePic($msg_sender[$i]);
+				echo "<div class=\"message\">"; // Start message
+					echo "<div class=\"message_icon\" style=\"background-image:url('$profile')\"></div>";
+					echo "<p class=\"message_title\">$msg_title[$i]</p>";
+					echo "<p class=\"message_username\">$username</p>";
+					echo "<p class=\"message_timestamp\">$msg_sent[$i]</p>";
+					echo "<p class=\"message_content\">$msg_message[$i]</p>";
+					echo "<form method=\"post\" action=\"postreply.php?message=$msg_refs[$i]\" class=\"message_reply_container\">";
+					echo "<div class=\"message_reply_icon\" style=\"background-image:url('$thisProfile')\"></div>";
+					echo "<textarea type=\"submit\" name=\"inputreply\" class=\"message_reply_textarea\"></textarea>";
+					echo "<input type=\"submit\" value=\"Reply\" class=\"message_reply\" />";
+					echo "</form>";
+				echo "</div>"; // End message
+			}
+				
+			echo "</div>"; // End message container
+		}
+		
+		
+		
 		?>
 		
 		<!-- Datagrams end -->
-
+		
 	</div>
 	<!-- Main body end -->
 </div>
@@ -743,6 +809,6 @@
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="comments.js"></script>
 <script type="text/javascript" src="csspopup.js"></script>
-
+<script type="text/javascript" src="messages.js"></script>
 </body>
 </html>
