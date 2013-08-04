@@ -1,6 +1,9 @@
 <?php 
 	session_start();
-	
+	if (isset($_GET['remove'])) {
+		$ref = $_GET['remove'];
+	}
+
 	$host = "localhost";
 	$user = "jhansel1";
 	$pass = "jhansel1";
@@ -24,6 +27,7 @@
 	// Standard SQL Query function
 	function mySQLQuery($input) {
 		$result2 = mysql_query($input);
+		
 		if (!$result2) {
 			echo "Could not execute query: $input";
 			echo "<br>";
@@ -32,18 +36,19 @@
 			return $result2;
 		}
 	}
+
+	$friend = $ref;
 	
-	$title = mysql_real_escape_string($_POST['inputtitle']);
-	$description = mysql_real_escape_string($_POST['inputdescription']);
+	$fquery = "SELECT id FROM users WHERE username = '$friend'";
+	$result = mySQLQuery($fquery);
+	$friendid = mysql_fetch_row($result)[0];
+	
 	$userid = $_SESSION['userid'];
-	$type = "video";
-	$content = mysql_real_escape_string($_POST['inputurl']);
-	$created = date('Y-m-d H:i:s');
 	
-	echo $date . "<br>";
-	$query = "INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', '$type', '$content', '$created')";
-	echo $query;
+	$query = "DELETE FROM friends WHERE userid = '$userid' AND friendid = '$friendid'";
+	
 	mySQLQuery($query);
-	
-	header('location:home.php'); */
+	echo "Removed friend! <br>";
+	header('Refresh: 1; url=home.php?home=friends');
+
 ?>

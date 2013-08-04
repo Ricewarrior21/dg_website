@@ -4,7 +4,7 @@
 <style>
 body{
 background-color:#d2d2d2;
-font-family:"Georgia", serif;
+font-family:Verdana, Geneva, sans-serif;
 font-size:12px;
 color:#094209;
 }
@@ -17,7 +17,12 @@ p, h1, form, button{border:0; margin:0; padding:0;}
 margin:0 auto;
 width: 400px;
 padding:14px;
+border-radius:15px;
 }
+
+.myform a:link { color:#0f5f0f; text-decoration:none; font-weight:bold }
+.myform a:visited { color:#0f5f0f; font-weight:bold }
+.myform a:hover { color:white; font-weight:bold }
 
 #stylized {
 border:solid 2px #094209;
@@ -109,6 +114,8 @@ font-weight:bold;
 <div class ="spacer"></div>
 
 </form>
+<br>
+<center><p>Not registered? Click <a href="register.php">here</a> to go to our registration page.</p></center>
 </div>
 
 </body>

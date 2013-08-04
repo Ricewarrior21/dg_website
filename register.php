@@ -84,7 +84,7 @@ font-weight:bold;
 </head>
 <body>
 
-<h1><center>Mobile App Registration</center></h1>
+<h1><center>Datagram Registration</center></h1>
 
 <div id="stylized" class="myform">
 <form id="form" name="form" method="post" action="complete.php">

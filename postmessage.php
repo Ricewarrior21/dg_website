@@ -1,6 +1,6 @@
 <?php 
 	session_start();
-	
+
 	$host = "localhost";
 	$user = "jhansel1";
 	$pass = "jhansel1";
@@ -24,6 +24,7 @@
 	// Standard SQL Query function
 	function mySQLQuery($input) {
 		$result2 = mysql_query($input);
+		
 		if (!$result2) {
 			echo "Could not execute query: $input";
 			echo "<br>";
@@ -32,18 +33,19 @@
 			return $result2;
 		}
 	}
+	$r = mysql_real_escape_string($_POST['receiver_list']);
 	
-	$title = mysql_real_escape_string($_POST['inputtitle']);
-	$description = mysql_real_escape_string($_POST['inputdescription']);
-	$userid = $_SESSION['userid'];
-	$type = "video";
-	$content = mysql_real_escape_string($_POST['inputurl']);
-	$created = date('Y-m-d H:i:s');
+	$rquery = "SELECT id FROM users WHERE username='$r'";
+	$result = mySQLQuery($rquery);
+	$receiver = mysql_fetch_row($result)[0];
+	$sender = $_SESSION['userid'];
+	$title = mysql_real_escape_string($_POST['messagetitle']);
+	$message = mysql_real_escape_string($_POST['message']);
+	$sent = date('Y-m-d H:i:s');
 	
-	echo $date . "<br>";
-	$query = "INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', '$type', '$content', '$created')";
-	echo $query;
+	$query = "INSERT INTO messages VALUES('', '$sender', '$receiver', '$title', '$message', '$sent')";
+	echo $query . "<br>";
 	mySQLQuery($query);
 	
-	header('location:home.php'); */
+	header('location:home.php');
 ?>

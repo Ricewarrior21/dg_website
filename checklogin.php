@@ -33,6 +33,7 @@ $_SESSION['home_status'] = "home";
 header("location:home.php?home=home");
 } else {
 echo "Wrong Username or Password";
+header('Refresh: 1; url=index.php');
 }
 
 mysql_close();

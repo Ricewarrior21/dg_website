@@ -274,6 +274,11 @@
 		$dg_created = get_dg_column($dg_refs, "created");
 		$dg_profile_pic = get_dg_profile($dg_userid);
 		for ($i = 0; $i < sizeof($dg_title); $i++) {
+			if ($dg_userid[$i] == $_SESSION['userid']) {
+				echo "<button class=\"dg_remove_button\" style=\"color:black\">
+							<a href=\"removedatagram.php?remove=$dg_refs[$i]\" class=\"friends_remove_button_text\" style=\"color:black\">Delete</a>
+						</button>";
+			}
 			if ($dg_type[$i] == "link") {
 				print_dg_link(getUsername($dg_userid[$i]), $dg_title[$i], $dg_description[$i], $dg_content[$i], $dg_type[$i], $dg_created[$i], $dg_profile_pic[$i], $dg_refs[$i]);
 			} else if ($dg_type[$i] == "photo") {
@@ -371,7 +376,11 @@
 					echo "<p>$content[$i]</p>";
 					echo "<p style=\"font-size:80%;\">Posted on: $created[$i]</p>";
 					echo "</div>";
-					
+					if ($creator[$i] == $_SESSION['userid']) {
+						echo "<button class=\"comment_remove_button\" style=\"color:black\">
+							<a href=\"removecomment.php?remove=$refs[$i]\" class=\"friends_remove_button_text\" style=\"color:black\">Delete</a>
+						</button>";
+					}
 				echo "</div>"; // End comment;
 			}
 			echo "</div>"; // End comment container
@@ -391,7 +400,94 @@
 			echo "</div>";
 		echo "</div>"; // End post comment container
 	}
+	
+		function get_message_refs() {
+			global $userid;
+			$user = $userid[0][0];
+			$query = "SELECT ref FROM messages WHERE reciever = '$user' ORDER BY sent DESC";
+			$result = mySQLQuery($query);
+			$temp = array();
+			while($row = mysql_fetch_row($result)) {
+				$temp[] = $row;
+			}
+			$message_refs = array();
+			for($i = 0; $i < sizeof($temp); $i++) {
+				$message_refs[$i] = $temp[$i][0];
+			}
+			return $message_refs;
+		}
+		
+		function get_message_column($message_refs, $column) {
+			$message_column = array();
+			for ($i = 0; $i < sizeof($message_refs); $i++) {
+				$query = "SELECT $column FROM messages WHERE ref ='$message_refs[$i]' ORDER BY sent DESC";
+				$result = mySQLQuery($query);
+				$row = mysql_fetch_row($result);
+				$message_column[$i] = $row[0];
+			}
+			return $message_column;
+		}
 
+		function printMessages($msg_refs) {
+			$msg_refs = get_message_refs();
+			$msg_sender = get_message_column($msg_refs, "sender");
+			$msg_reciever = get_message_column($msg_refs, "reciever");
+			$msg_title = get_message_column($msg_refs, "title");
+			$msg_message = get_message_column($msg_refs, "message");
+			$msg_sent = get_message_column($msg_refs, "sent");
+			$thisProfile = getCurrentProfilePic();
+			echo "<div id=\"messages_container\">"; // Start Message container
+			for($i = 0; $i < sizeof($msg_refs); $i++) {
+				$username = getUsername($msg_sender[$i]);
+				$profile = getProfilePic($msg_sender[$i]);
+				echo "<div class=\"message\">"; // Start message
+					echo "<div class=\"message_icon\" style=\"background-image:url('$profile')\"></div>";
+					echo "<p class=\"message_title\">$msg_title[$i]</p>";
+					echo "<p class=\"message_username\">$username</p>";
+					echo "<p class=\"message_timestamp\">$msg_sent[$i]</p>";
+					echo "<p class=\"message_content\">$msg_message[$i]</p>";
+					echo "<form method=\"post\" action=\"postreply.php?message=$msg_refs[$i]\" class=\"message_reply_container\">";
+					echo "<div class=\"message_reply_icon\" style=\"background-image:url('$thisProfile')\"></div>";
+					echo "<textarea type=\"submit\" name=\"inputreply\" class=\"message_reply_textarea\"></textarea>";
+					echo "<input type=\"submit\" value=\"Reply\" class=\"message_reply\" />";
+					echo "</form>";
+					echo "<button class=\"message_remove_button\">
+						<a href=\"removemessage.php?remove=$msg_refs[$i]\" class=\"friends_remove_button_text\" style=\"color:black\">Delete</a>
+					</button>";
+				echo "</div>"; // End message
+			}
+			echo "</div>"; // End message container
+		}
+		
+		function printFriends() {
+			global $friends;
+			global $friends_id;
+			for ($i = 0; $i < sizeof($friends); $i++) {
+				$fquery = "SELECT joined FROM users WHERE username = '$friends[$i]'";
+				$result = mySQLQuery($fquery);
+				$joined = mysql_fetch_row($result)[0];
+				$profile = getProfilePic($friends_id[$i]);
+				echo "
+				<div id=\"datagram\" style=\"border:5px solid #e2e2e2; width:80%; margin-left:10px\">
+					<div id=\"dg_profile_pic\" style=\"background-image:url('$profile')\">
+						<div id=\"dg_profile_text\">
+							<a href=\"home.php?home=$friends[$i]\">$friends[$i]</a>
+						</div>
+					</div>
+					<div id=\"dg_info\">
+					<br><br>
+					<h1 style=\"margin-top:0px; margin-left:20px; text-align:center\"><a href=\"home.php?home=$friends[$i]\">$friends[$i]</a></h1>
+					<h2 style=\"text-align:center\">Joined on: $joined</h2>
+					</div>
+				</div>
+				<button class=\"friend_remove_button\">
+					<a href=\"removefriend.php?remove=$friends[$i]\" class=\"friends_remove_button_text\">Remove</a>
+				</button>
+				<br>
+				";
+			}
+		}
+		
 	$username = $_SESSION['username'];
 	$r1 = mySQLQuery("SELECT id FROM users where username = '$username'");
 	$userid = mysql_fetch_row($r1);
@@ -713,6 +809,13 @@
 		<!-- Datagrams start -->
 		<?php
 
+		function printMessageOptions() {
+			global $friends;
+			for ($i = 0; $i < sizeof($friends); $i++) {
+				echo "<option>$friends[$i]</option>";
+			}
+		}
+		
 		$dg_refs = get_dg_refs();
 		
 		if(isset($_GET['home'])) {
@@ -725,80 +828,51 @@
 			printDatagrams($dg_refs);
 		} else if ($status == "friends") {
 			// DO NOTHING
-			echo "You're on the friends page";
 			echo "<h2>Friends</h2>";
+			echo "<div class=\"friend_add_icon\">+<div class=\"friend_add_icon_text\">Add Friend</div></div><br>";
+			echo "
+				<form class=\"friends_add_container\" action=\"addfriend.php\" name=\"friend\" method=\"post\">
+					<input type=\"text\" name=\"addfriend\" class=\"friend_add_textbox\" method=\"post\"></input>
+					<h2>Enter in a username to add:</h2>
+					<input type=\"submit\" value=\"Submit\" class=\"friend_add_button\" />
+				</form>
+			";
+			printFriends();
 		} else if ($status == "messages") {
 			echo "<h2>Messages</h2>";
+			echo "<div class=\"message_compose_icon\">+<div class=\"message_compose_icon_text\">Compose</div></div>";
+			echo "
+			<div class=\"compose_container\">
+				<h1 style=\"margin-left:210px\">Create a Message</h1><br>
+				<form action=\"postmessage.php\" method=\"post\" class=\"message_form\">
+				<div class=\"message_form_left\">
+					<h2>Recipient</h2>
+					<select name=\"receiver_list\" class=\"message_textbox\">'
+				";
+				printMessageOptions();
+			echo "
+					</select>
+				</div>
+				<div class=\"message_form_right\">
+					<h2>Title</h2>
+					<h3>Give your message a title</h3>
+					<input type=\"text\" name=\"messagetitle\" class=\"message_textbox\"></input>
+					<h2>Message</h2>
+					<h3>Type your message here</h3>
+					<textarea type=\"text\" name=\"message\" class=\"message_textarea\"></textarea>
+					<input type=\"submit\" value=\"Send\" class=\"message_submit\" />
+				</div>
+				</form>
+			</div>
+			";
+			$message_refs = get_message_refs();
 			printMessages($message_refs);
 		} else {
 			// print username datagrams that was clicked
 			printUserDatagrams($status);
 		}
 		
-		function get_message_refs() {
-			global $userid;
-			$user = $userid[0][0];
-			$query = "SELECT ref FROM messages WHERE reciever = '$user' ORDER BY sent DESC";
-			$result = mySQLQuery($query);
-			$temp = array();
-			while($row = mysql_fetch_row($result)) {
-				$temp[] = $row;
-			}
-			$message_refs = array();
-			for($i = 0; $i < sizeof($temp); $i++) {
-				$message_refs[$i] = $temp[$i][0];
-			}
-			return $message_refs;
-		}
-		
-		function get_message_column($message_refs, $column) {
-			$message_column = array();
-			for ($i = 0; $i < sizeof($message_refs); $i++) {
-				$query = "SELECT $column FROM messages WHERE ref ='$message_refs[$i]' ORDER BY sent DESC";
-				$result = mySQLQuery($query);
-				$row = mysql_fetch_row($result);
-				$message_column[$i] = $row[0];
-			}
-			return $message_column;
-		}
-		
-		$message_refs = get_message_refs();
-
-		function printMessages($msg_refs) {
-			$msg_refs = get_message_refs();
-			$msg_sender = get_message_column($msg_refs, "sender");
-			$msg_reciever = get_message_column($msg_refs, "reciever");
-			$msg_title = get_message_column($msg_refs, "title");
-			$msg_message = get_message_column($msg_refs, "message");
-			$msg_sent = get_message_column($msg_refs, "sent");
-			
-			$thisProfile = getCurrentProfilePic();
-			
-			echo "<div id=\"messages_container\">"; // Start Message container
-			
-			for($i = 0; $i < sizeof($msg_refs); $i++) {
-				$username = getUsername($msg_sender[$i]);
-				$profile = getProfilePic($msg_sender[$i]);
-				echo "<div class=\"message\">"; // Start message
-					echo "<div class=\"message_icon\" style=\"background-image:url('$profile')\"></div>";
-					echo "<p class=\"message_title\">$msg_title[$i]</p>";
-					echo "<p class=\"message_username\">$username</p>";
-					echo "<p class=\"message_timestamp\">$msg_sent[$i]</p>";
-					echo "<p class=\"message_content\">$msg_message[$i]</p>";
-					echo "<form method=\"post\" action=\"postreply.php?message=$msg_refs[$i]\" class=\"message_reply_container\">";
-					echo "<div class=\"message_reply_icon\" style=\"background-image:url('$thisProfile')\"></div>";
-					echo "<textarea type=\"submit\" name=\"inputreply\" class=\"message_reply_textarea\"></textarea>";
-					echo "<input type=\"submit\" value=\"Reply\" class=\"message_reply\" />";
-					echo "</form>";
-				echo "</div>"; // End message
-			}
-				
-			echo "</div>"; // End message container
-		}
-		
-		
-		
-		?>
+		?>	
 		
 		<!-- Datagrams end -->
 		
@@ -810,5 +884,6 @@
 <script type="text/javascript" src="comments.js"></script>
 <script type="text/javascript" src="csspopup.js"></script>
 <script type="text/javascript" src="messages.js"></script>
+<script type="text/javascript" src="friends.js"></script>
 </body>
 </html>

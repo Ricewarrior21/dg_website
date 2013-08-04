@@ -1,6 +1,9 @@
 <?php 
 	session_start();
-	
+	if (isset($_GET['ref'])) {
+		$ref = $_GET['ref'];
+	}
+
 	$host = "localhost";
 	$user = "jhansel1";
 	$pass = "jhansel1";
@@ -24,6 +27,7 @@
 	// Standard SQL Query function
 	function mySQLQuery($input) {
 		$result2 = mysql_query($input);
+		
 		if (!$result2) {
 			echo "Could not execute query: $input";
 			echo "<br>";
@@ -32,18 +36,27 @@
 			return $result2;
 		}
 	}
-	
-	$title = mysql_real_escape_string($_POST['inputtitle']);
-	$description = mysql_real_escape_string($_POST['inputdescription']);
+
+	$friend = $_POST['addfriend'];
+	$fquery = "SELECT id FROM users WHERE username = '$friend'";;
+	mySQLQuery($fquery);
+	$result = mySQLQUery($fquery);
+
 	$userid = $_SESSION['userid'];
-	$type = "video";
-	$content = mysql_real_escape_string($_POST['inputurl']);
-	$created = date('Y-m-d H:i:s');
-	
-	echo $date . "<br>";
-	$query = "INSERT INTO datagrams VALUES('', '$title', '$description', '$userid', '$type', '$content', '$created')";
-	echo $query;
-	mySQLQuery($query);
-	
-	header('location:home.php'); */
+	$friendid = mysql_fetch_row($result)[0];
+	$status = 0;
+
+	if (empty($friendid)) {
+		echo "Friend not found!";
+		header('Refresh: 1; url=home.php?home-friends');
+	} else {
+		echo $friend . "<br>";
+		echo "$userid <br>";
+		echo "$friendid <br>";
+		echo "$status <br>";
+		$query = "INSERT INTO friends VALUES('', '$userid', '$friendid', '$status')";
+		echo $query;
+		mySQLQuery($query);
+		header('location:home.php');
+	}
 ?>
